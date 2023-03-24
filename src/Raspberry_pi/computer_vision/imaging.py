@@ -299,20 +299,23 @@ def findShortestPath(startX, startY, endX, endY, mapRoutes, thresh):
     # Return our path!
     return path_x, path_y
 
-imageArray = importImage('maze8.jpg')
+def main():
+    imageArray = importImage('maze8.jpg')
 
-originalImage = imageArray[0]
-hsv_points = imageArray[1]
+    originalImage = imageArray[0]
+    hsv_points = imageArray[1]
 
-mask_dict = createMasks(hsv_points, originalImage)
-mask_dict, polygonArr = contourMasks(mask_dict, originalImage)
+    mask_dict = createMasks(hsv_points, originalImage)
+    mask_dict, polygonArr = contourMasks(mask_dict, originalImage)
 
-startX, startY, endX, endY = findCentroids(mask_dict)
+    startX, startY, endX, endY = findCentroids(mask_dict)
 
-mapRoutes, thresh = findPaths(mask_dict)
-path_x, path_y = findShortestPath(startX, startY, endX, endY, mapRoutes, thresh)
+    mapRoutes, thresh = findPaths(mask_dict)
+    path_x, path_y = findShortestPath(startX, startY, endX, endY, mapRoutes, thresh)
 
-plt.figure(figsize=(14,14))
-plt.imshow(originalImage)
-plt.plot(path_x, path_y, 'r-', linewidth=5)
-plt.show()
+    plt.figure(figsize=(14,14))
+    plt.imshow(originalImage)
+    plt.plot(path_x, path_y, 'r-', linewidth=5)
+    plt.show()
+
+main()
