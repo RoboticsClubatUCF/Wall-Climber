@@ -35,6 +35,30 @@ void loop()
   {
     // Send any characters the Serial monitor prints to the bluetooth
     bluetooth.print((char)Serial.read());
+
+    command = Serial.readStringUntil('\n');
+         
+      if(command.equals("forward"))
+      {
+         
+      }
+      else if(command.equals("left"))
+      {
+         
+      }
+      else if(command.equals("right"))
+      {
+         
+      }
+      else if(command.equals("backward"))
+      {
+         
+      }
+      else
+      {
+        Serial.println("Invalid command");
+      }
   }
   // and loop forever and ever!
+
 }
