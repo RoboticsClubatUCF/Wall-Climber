@@ -40,12 +40,12 @@ def createMasks(hsv_points, originalImage):
     upper_green = np.array([80, 255, 140])
 
     # Mask for red
-    lower_red = np.array([0, 180,20])
+    lower_red = np.array([0, 160, 80])
     upper_red = np.array([10, 255, 255])
 
     # Mask for blue
-    lower_blue = np.array([100, 0, 0])
-    upper_blue = np.array([255, 255, 95])
+    lower_blue = np.array([120, 0, 20])
+    upper_blue = np.array([255, 255, 145])
 
     # Mask for orange
     lower_orange = np.array([0, 100, 150])
@@ -300,18 +300,103 @@ def findShortestPath(startX, startY, endX, endY, mapRoutes, thresh):
     return path_x, path_y
 
 def main():
-    imageArray = importImage('maze8.jpg')
+    imageArray = importImage('maze10.jpg')
 
     originalImage = imageArray[0]
     hsv_points = imageArray[1]
 
     mask_dict = createMasks(hsv_points, originalImage)
     mask_dict, polygonArr = contourMasks(mask_dict, originalImage)
+    cv.imwrite("blue.jpg", mask_dict['blue'])
+    cv.imwrite("green.jpg", mask_dict['green'])
+    cv.imwrite("orange.jpg", mask_dict['orange'])
+    cv.imwrite("red.jpg", mask_dict['red'])
+
+
+    ogImgX = originalImage.shape[0] / 2
+    ogImgY = originalImage.shape[1] / 2
+
+    avgSideLength = 0
+    remove = 0
+    for i in range(len(polygonArr)):
+        minX = 10000
+        maxX = 0
+        minY = 10000
+        maxY = 0
+        for j in range(len(polygonArr[i])):
+            if(polygonArr[i][j][0][0] < minX):
+                minX = polygonArr[i][j][0][0]
+            if(polygonArr[i][j][0][0] > maxX):
+                maxX = polygonArr[i][j][0][0]
+            if(polygonArr[i][j][0][1] < minY):
+                minY = polygonArr[i][j][0][1]
+            if(polygonArr[i][j][0][1] > maxY):
+                maxY = polygonArr[i][j][0][1]
+        print(minX, " ", maxX, " ", maxX-minX)
+        print(minY, " ", maxY, " ", maxY-minY)
+        if(maxX-minX > 60):
+            avgSideLength += maxX-minX
+            avgSideLength += maxY - minY
+        else:
+            remove += 1
+    avgSideLength /= (len(polygonArr)-remove)
+    avgSideLength /= 2
+
+    print()
+    print(avgSideLength)
+
 
     startX, startY, endX, endY = findCentroids(mask_dict)
 
     mapRoutes, thresh = findPaths(mask_dict)
     path_x, path_y = findShortestPath(startX, startY, endX, endY, mapRoutes, thresh)
+
+    prevX = -1
+    prevY = -1
+    pixelsMovedXPos = 0
+    pixelsMovedYPos = 0
+    pixelsMovedXNeg = 0
+    pixelsMovedYNeg = 0
+    inchL = 0
+    inchR = 0
+    inchU = 0
+    inchD = 0
+    prevDir = 0
+    for i in range(len(path_x)):
+        curX = path_x[i]
+        curY = path_y[i]
+        if(i == 0):
+            prevX = curX
+            prevY = curY
+            continue
+
+        changeInX = curX - prevX
+        changeInY = curY - prevY
+
+        if(changeInX < 0):
+            pixelsMovedXNeg += math.fabs(changeInX)
+        else:
+            pixelsMovedXPos += changeInX
+        if(changeInY < 0):
+            pixelsMovedYNeg += math.fabs(changeInY)
+        else:
+            pixelsMovedYPos += changeInY
+
+        if( pixelsMovedXNeg >= avgSideLength ):
+            pixelsMovedXNeg -= avgSideLength
+            print("1 Inch LEFT")
+        if (pixelsMovedXPos >= avgSideLength):
+            pixelsMovedXPos -= avgSideLength
+            print("1 Inch RIGHT")
+        if (pixelsMovedYNeg >= avgSideLength):
+            pixelsMovedYNeg -= avgSideLength
+            print("1 Inch UP")
+        if (pixelsMovedYPos >= avgSideLength):
+            pixelsMovedYPos -= avgSideLength
+            print("1 Inch DOWN")
+        prevX = curX
+        prevY = curY
+
 
     plt.figure(figsize=(14,14))
     plt.imshow(originalImage)
